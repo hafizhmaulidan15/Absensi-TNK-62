@@ -31,7 +31,7 @@ interface AdminDashboardProps {
   setIsAuthenticated: (val: boolean) => void;
 }
 
-const CORRECT_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN ?? '';
+const CORRECT_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN ?? 'TNK61SVIPB';
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   records,
