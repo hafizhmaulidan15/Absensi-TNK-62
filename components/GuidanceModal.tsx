@@ -58,7 +58,7 @@ export const GuidanceModal: React.FC<GuidanceModalProps> = ({ isOpen, onClose })
                     {s.shift} WIB
                   </div>
                   <div className="font-semibold text-xs text-slate-900">{s.name}</div>
-                  <div className="text-[11px] text-slate-500">Buka: {s.timeRange}</div>
+                  <div className="text-[11px] text-slate-500">Toleransi tepat waktu: maks 10 menit</div>
                 </div>
               ))}
             </div>
@@ -68,39 +68,35 @@ export const GuidanceModal: React.FC<GuidanceModalProps> = ({ isOpen, onClose })
           <div className="space-y-3">
             <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>2. Standar APD & Keselamatan Kandang</span>
-            </h4>
-            <div className="space-y-2 text-xs text-slate-600">
-              <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>Wajib mengenakan <strong>Wearpack Praktikum</strong> beridentitas resmi SV IPB IPB.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>Wajib menggunakan <strong>Sepatu Boots Karet</strong> saat memasuki area kandang basah dan dipping antiseptik.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>Gunakan masker pelindung debu pakan saat berada di Pabrik Pakan Mini atau area brooding unggas.</span>
+                <span>2. SOP Pakaian & APD</span>
+              </h4>
+              <div className="space-y-2 text-xs text-slate-600">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Harus menggunakan <strong>Wearpack Praktikum (WP)</strong> beridentitas resmi SV IPB.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Harus menggunakan <strong>sepatu boots</strong> di area kandang.</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Section 3: Tata Cara Dokumentasi Foto */}
-          <div className="space-y-3">
-            <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-              <Camera className="w-4 h-4 text-orange-500" />
-              <span>3. Ketentuan Foto Dokumentasi Piket</span>
-            </h4>
-            <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200 text-orange-950 text-xs space-y-1.5 leading-relaxed">
-              <p className="font-semibold">Foto dokumentasi harus memperlihatkan:</p>
-              <ul className="list-disc list-inside space-y-1 text-orange-900/90 pl-1">
-                <li>Mahasiswa sedang melaksanakan tugas piket (pemberian pakan, sanitasi kandang, milking, atau recording).</li>
-                <li>Pencahayaan cukup terang, tidak buram, dan bukan foto objek sembarangan.</li>
-                <li>Sistem otomatis menyematkan watermark tanggal, jam WIB, dan nama mahasiswa.</li>
-              </ul>
+            {/* Section 3: Tata Cara Dokumentasi Foto */}
+            <div className="space-y-3">
+              <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <Camera className="w-4 h-4 text-orange-500" />
+                <span>3. SOP Dokumentasi Foto</span>
+              </h4>
+              <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200 text-orange-950 text-xs space-y-1.5 leading-relaxed">
+                <p className="font-semibold">Foto dokumentasi harus:</p>
+                <ul className="list-disc list-inside space-y-1 text-orange-900/90 pl-1">
+                  <li>Harus menggunakan <strong>timestamp/map cam</strong>.</li>
+                  <li>Mahasiswa sedang melaksanakan tugas piket.</li>
+                  <li>Pencahayaan cukup terang, tidak buram, dan bukan foto objek sembarangan.</li>
+                </ul>
+              </div>
             </div>
-          </div>
 
           {/* Section 4: Kontak Bantuan */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
