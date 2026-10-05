@@ -95,7 +95,7 @@ export function getShiftAvailability(
   const winStartFmt = `${String(Math.floor(winStart / 60)).padStart(2, '0')}.${String(winStart % 60).padStart(2, '0')}`;
   const winEndFmt = `${String(Math.floor(winEnd / 60)).padStart(2, '0')}.${String(winEnd % 60).padStart(2, '0')}`;
 
-  if (currentTotalMinutes < winStart || currentTotalMinutes > winEnd) {
+  if (process.env.NEXT_PUBLIC_UNLOCK_ALL !== '1' && (currentTotalMinutes < winStart || currentTotalMinutes > winEnd)) {
     return {
       isAvailable: false,
       reason: `Presensi shift ${config.name} hanya dibuka pukul ${winStartFmt} - ${winEndFmt} WIB. Di luar jam tersebut form terkunci.`,

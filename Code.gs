@@ -28,19 +28,25 @@ function doPost(e) {
 
     var urlFoto = '';
     if (fotoBase64) {
-      var match = fotoBase64.match(/^data:(image\/\w+);base64,/);
-      var mime = match ? match[1] : 'image/jpeg';
-      var ext = mime.split('/')[1] || 'jpg';
-      if (ext === 'jpeg') ext = 'jpg';
-      var cleaned = fotoBase64.replace(/^data:image\/\w+;base64,/, '');
-      var blob = Utilities.newBlob(
-        Utilities.base64Decode(cleaned),
-        mime,
-        nama.replace(/\s+/g, '_') + '_' + Date.now() + '.' + ext
-      );
-      var file = DriveApp.getFolderById(FOLDER_ID).createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      urlFoto = file.getUrl();
+      try {
+        var match = fotoBase64.match(/^data:(image\/\w+);base64,/);
+        var mime = match ? match[1] : 'image/jpeg';
+        var ext = mime.split('/')[1] || 'jpg';
+        if (ext === 'jpeg') ext = 'jpg';
+        var cleaned = fotoBase64.replace(/^data:image\/\w+;base64,/, '');
+        var blob = Utilities.newBlob(
+          Utilities.base64Decode(cleaned),
+          mime,
+          nama.replace(/\s+/g, '_') + '_' + Date.now() + '.' + ext
+        );
+        var file = DriveApp.getFolderById(FOLDER_ID).createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        urlFoto = file.getUrl();
+      } catch (driveErr) {
+        // DriveApp tidak tersedia untuk akses publik; simpan referensi file di Sheets saja
+        console.log('Upload foto gagal: ' + driveErr.message);
+        urlFoto = '[FILE] ' + nama.replace(/\s+/g, '_') + '_' + Date.now() + '.' + (match && match[1] ? match[1].split('/')[1] : 'jpg');
+      }
     }
 
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -79,4 +85,11 @@ function doGet() {
 function jsonResponse_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Jalankan ini sekali di editor (pilih fungsi testDriveAuth lalu Run)
+// untuk memicu layar izin akses Google Drive.
+function testDriveAuth() {
+  var f = DriveApp.getFolderById(FOLDER_ID);
+  Logger.log(f.getName());
 }
