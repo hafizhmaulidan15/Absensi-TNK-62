@@ -14,7 +14,6 @@ import {
   formatWIBDate,
   calculateAttendanceStatus,
 } from '@/lib/timeUtils';
-import { INITIAL_STUDENT_NAMES } from '@/lib/sampleData';
 import {
   Camera,
   Upload,
@@ -557,22 +556,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                 />
               </div>
 
-              {/* Quick Suggestion Chips */}
-              <div className="pt-1 flex flex-wrap gap-1.5 items-center">
-                <span className="text-[11px] text-slate-500">Saran:</span>
-                {INITIAL_STUDENT_NAMES.slice(0, 3).map((name) => (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => {
-                      setStudentName(name);
-                    }}
-                    className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer min-h-[28px]"
-                  >
-                    {name.split(' ')[0]}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* NIM Mahasiswa */}
