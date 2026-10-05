@@ -11,7 +11,7 @@ import { INITIAL_RECORDS } from '@/lib/sampleData';
 import { getWIBTimeParts } from '@/lib/timeUtils';
 
 const STORAGE_KEY = 'tnk62_attendance_records_v2';
-const GAS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwTYv9taERSjt8K9wx_O54Xk_t7wMuXugNmXjWk97xKAxXfUF3A7023IAeB9nAjDSU/exec';
+const GAS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyi4nzmmUw9LFiynvgWy4ivBwWc7w-YxesjmDE5ZTNcaaE-OYRukQxf9SHYiw3jbITh/exec';
 
 const emptySubscribe = () => () => {};
 
