@@ -10,6 +10,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'Presensi Piket TNK 62 - Teknologi dan Manajemen Ternak IPB University',
+  icons: {
+    icon: '/icon.svg',
+  },
   description: 'Portal Presensi Piket Mahasiswa Program Studi Teknologi dan Manajemen Ternak (TNK 62) Sekolah Vokasi IPB University',
   openGraph: {
     title: 'Presensi Piket TNK 62 - Teknologi dan Manajemen Ternak IPB University',
