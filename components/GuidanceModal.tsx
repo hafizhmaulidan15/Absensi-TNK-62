@@ -45,10 +45,10 @@ export const GuidanceModal: React.FC<GuidanceModalProps> = ({ isOpen, onClose })
           <div className="space-y-3">
             <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-600" />
-              <span>1. Jadwal Sesi Piket & Pengunci Waktu (Time Lock)</span>
+              <span>1. Jadwal Sesi Piket & Toleransi Waktu</span>
             </h4>
             <p className="text-slate-600 text-xs leading-relaxed">
-              Sistem absensi dilengkapi pengunci waktu otomatis berdasarkan jam sistem. Mahasiswa hanya dapat mengisi presensi pada rentang toleransi shift:
+              Presensi tiap shift hanya bisa diisi pada jamnya: Pagi 06.00–11.59, Siang 12.00–15.59, Sore 16.00–21.00 WIB. Lewat toleransi 10 menit dicatat Terlambat.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">

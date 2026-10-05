@@ -253,7 +253,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
     }
 
     if (!shiftAvailability.isAvailable) {
-      setSubmitError(`Sesi piket ${selectedShift} WIB sedang ditutup. Presensi hanya dibuka maksimal 10 menit setelah jam masuk.`);
+      setSubmitError(shiftAvailability.reason);
       return;
     }
 
@@ -457,19 +457,16 @@ export const StudentForm: React.FC<StudentFormProps> = ({
           </div>
         </div>
 
-        {/* Locked Alert if outside 15 minutes window */}
-        {!shiftAvailability.isAvailable && (
+        {/* Notice if past tolerance window */}
+        {shiftAvailability.statusLabel === 'Terlambat' && (
           <div className="mx-4 sm:mx-6 lg:mx-8 mt-5 sm:mt-6 p-3.5 sm:p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-2.5 sm:gap-3">
-            <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0 mt-0.5" />
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-xs sm:text-sm space-y-1">
               <p className="font-bold text-amber-950">
-                Pilihan Waktu Piket Sedang Ditutup
+                Anda Mengisi di Luar Batas Toleransi
               </p>
               <p className="text-amber-800 text-[11px] sm:text-xs">
                 {shiftAvailability.reason}
-              </p>
-              <p className="text-[10px] sm:text-[11px] text-amber-700 font-medium">
-                Aturan Piket TNK: Batas waktu pengisian presensi adalah <strong>maksimal 10 menit</strong> setelah jam masuk shift piket.
               </p>
             </div>
           </div>
@@ -506,11 +503,13 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                   <button
                     key={cfg.shift}
                     type="button"
-                    onClick={() => setSelectedShift(cfg.shift)}
-                    className={`relative p-3 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer min-h-[56px] ${
-                      isSelected
-                        ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20 shadow-2xs'
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    onClick={() => avail.isAvailable && setSelectedShift(cfg.shift)}
+                    className={`relative p-3 sm:p-3.5 rounded-xl border text-left transition-all min-h-[56px] ${
+                      !avail.isAvailable
+                        ? 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
+                        : isSelected
+                          ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20 shadow-2xs cursor-pointer'
+                          : 'border-slate-200 hover:border-slate-300 bg-white cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -520,9 +519,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                       <span
                         suppressHydrationWarning
                         className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                          avail.isAvailable
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-slate-100 text-slate-600'
+                          !avail.isAvailable
+                            ? 'bg-slate-200 text-slate-600'
+                            : avail.statusLabel === 'Terlambat'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-emerald-100 text-emerald-800'
                         }`}
                       >
                         {avail.statusLabel}
@@ -838,7 +839,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
             </button>
 
             <p className="text-center text-[11px] sm:text-xs text-slate-500 mt-2 sm:mt-2.5">
-              Presensi otomatis terkunci 10 menit setelah jadwal masuk shift.
+              Shift terkunci di luar jamnya. Pagi 06.00–11.59, Siang 12.00–15.59, Sore 16.00–21.00. Lewat toleransi 10 menit dicatat Terlambat.
             </p>
           </div>
 

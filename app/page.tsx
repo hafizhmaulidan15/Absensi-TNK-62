@@ -53,11 +53,11 @@ export default function Home() {
 
         // Auto pick closest shift based on current hour in WIB
         const { hours: h } = getWIBTimeParts(new Date());
-        if (h >= 5 && h < 10) {
+        if (h >= 6 && h < 12) {
           setSelectedShift('06.30');
-        } else if (h >= 10 && h < 14) {
+        } else if (h >= 12 && h < 16) {
           setSelectedShift('12.00');
-        } else if (h >= 14 && h < 18) {
+        } else if (h >= 16 && h < 21) {
           setSelectedShift('16.00');
         }
 

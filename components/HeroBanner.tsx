@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SHIFT_CONFIGS, getShiftAvailability, formatWIBTime } from '@/lib/timeUtils';
-import { Clock, CheckCircle2, Lock, Building2, Shield, Camera } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, Building2, Shield, Camera } from 'lucide-react';
 import { PiketShift } from '@/types/attendance';
 
 interface HeroBannerProps {
@@ -140,15 +140,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                           className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full whitespace-nowrap ${
                             isSelected
                               ? 'bg-white text-blue-800'
-                              : status.isAvailable
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-slate-200/80 text-slate-600'
+                              : status.statusLabel === 'Terlambat'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-emerald-100 text-emerald-800'
                           }`}
                         >
-                          {status.isAvailable ? (
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          {status.statusLabel === 'Terlambat' ? (
+                            <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
                           ) : (
-                            <Lock className="w-3 h-3 text-slate-400 shrink-0" />
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
                           )}
                           <span>{status.statusLabel}</span>
                         </span>
@@ -161,7 +161,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
               <div className="p-2.5 sm:p-3 rounded-xl bg-blue-50/80 border border-blue-200/80 text-blue-950 text-[11px] sm:text-xs flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>
-                  Ketentuan Resmi TNK: Presensi ditutup otomatis setelah <strong>10 menit</strong> dari jam masuk shift.
+                  Ketentuan Resmi TNK: Toleransi keterlambatan maksimal <strong>10 menit</strong> setelah jam masuk. Lewat dari itu, absen tetap diterima tapi dicatat Terlambat.
                 </span>
               </div>
 

@@ -83,36 +83,39 @@ export function getShiftAvailability(
   const openTotalMinutes = config.openHour * 60 + config.openMinute;
   const closeTotalMinutes = config.closeHour * 60 + config.closeMinute;
 
-  // Jika sebelum jam masuk
-  if (currentTotalMinutes < openTotalMinutes) {
-    const diff = openTotalMinutes - currentTotalMinutes;
-    const diffHours = Math.floor(diff / 60);
-    const diffMins = diff % 60;
-    const timeUntil = diffHours > 0 ? `${diffHours} jam ${diffMins} mnt lagi` : `${diffMins} menit lagi`;
+  const fmt = (h: number, m: number) => `${String(h).padStart(2, '0')}.${String(m).padStart(2, '0')}`;
+
+  // Jendela per shift: pagi 06.00-11.59, siang 12.00-15.59, sore 16.00-21.00
+  const windows: Record<PiketShift, [number, number]> = {
+    '06.30': [6 * 60, 11 * 60 + 59],
+    '12.00': [12 * 60, 15 * 60 + 59],
+    '16.00': [16 * 60, 21 * 60],
+  };
+  const [winStart, winEnd] = windows[config.shift];
+  const winStartFmt = `${String(Math.floor(winStart / 60)).padStart(2, '0')}.${String(winStart % 60).padStart(2, '0')}`;
+  const winEndFmt = `${String(Math.floor(winEnd / 60)).padStart(2, '0')}.${String(winEnd % 60).padStart(2, '0')}`;
+
+  if (currentTotalMinutes < winStart || currentTotalMinutes > winEnd) {
     return {
       isAvailable: false,
-      reason: `Belum dibuka. Dibuka tepat pukul ${String(config.openHour).padStart(2, '0')}.${String(config.openMinute).padStart(2, '0')} WIB (${timeUntil}).`,
-      statusLabel: 'Belum Dibuka',
-      minutesRemaining: diff,
+      reason: `Presensi shift ${config.name} hanya dibuka pukul ${winStartFmt} - ${winEndFmt} WIB. Di luar jam tersebut form terkunci.`,
+      statusLabel: 'Terkunci',
     };
   }
 
-  // Jika lewat 10 menit setelah jam masuk
+  // Dalam jendela tapi lewat toleransi 10 menit: boleh absen, status Terlambat
   if (currentTotalMinutes > closeTotalMinutes) {
     return {
-      isAvailable: false,
-      reason: `Waktu presensi telah ditutup pukul ${String(config.closeHour).padStart(2, '0')}.${String(config.closeMinute).padStart(2, '0')} WIB (batas maksimal 10 menit setelah masuk).`,
-      statusLabel: 'Telah Ditutup',
+      isAvailable: true,
+      reason: `Sudah lewat batas ${fmt(config.closeHour, config.closeMinute)} WIB. Presensi masih bisa diisi, tapi statusnya Terlambat.`,
+      statusLabel: 'Terlambat',
     };
   }
 
-  // Sedang dalam rentang 10 menit
-  const remaining = closeTotalMinutes - currentTotalMinutes;
   return {
     isAvailable: true,
-    reason: `Sesi sedang aktif dibuka sampai pukul ${String(config.closeHour).padStart(2, '0')}.${String(config.closeMinute).padStart(2, '0')} WIB (sisa ${remaining} menit).`,
-    statusLabel: 'Aktif Dibuka',
-    minutesRemaining: remaining,
+    reason: `Presensi dibuka. Batas tepat waktu: ${fmt(config.closeHour, config.closeMinute)} WIB (10 menit setelah ${fmt(config.openHour, config.openMinute)}).`,
+    statusLabel: currentTotalMinutes < openTotalMinutes ? 'Belum Masuk Jam' : 'Tepat Waktu',
   };
 }
 
