@@ -61,9 +61,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [manualName, setManualName] = useState('');
   const [manualNim, setManualNim] = useState('');
   const [manualShift, setManualShift] = useState<PiketShift>('06.30');
-  const [manualLocation, setManualLocation] = useState<UnitLocation>(
-    'Kandang Ruminansia Besar (Sapi Perah & Potong)'
-  );
+  const [manualLocation, setManualLocation] = useState<UnitLocation>('Kandang Itik');
   const [manualNotes, setManualNotes] = useState('');
 
   // Handle Password Login
@@ -835,13 +833,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onChange={(e) => setManualLocation(e.target.value as UnitLocation)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 bg-white"
                 >
-                  <option value="Kandang Ruminansia Besar (Sapi Perah & Potong)">Kandang Ruminansia Besar</option>
-                  <option value="Kandang Ruminansia Kecil (Domba & Kambing)">Kandang Ruminansia Kecil</option>
-                  <option value="Kandang Unggas (Broiler & Layer)">Kandang Unggas (Broiler & Layer)</option>
-                  <option value="Laboratorium Nutrisi dan Pakan Ternak">Laboratorium Nutrisi dan Pakan</option>
-                  <option value="Pabrik Mini Pengolahan Pakan (Feed Mill)">Pabrik Mini Pengolahan Pakan</option>
-                  <option value="Unit Pengolahan Limbah & Biogas">Unit Pengolahan Limbah & Biogas</option>
-                  <option value="Klinik & Perawatan Kesehatan Ternak">Klinik & Perawatan Ternak</option>
+                  <option value="Kandang Itik">Kandang Itik</option>
+                  <option value="Kandang Puyuh">Kandang Puyuh</option>
                 </select>
               </div>
 

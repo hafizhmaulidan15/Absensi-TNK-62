@@ -43,13 +43,8 @@ interface StudentFormProps {
 }
 
 const UNIT_LOCATIONS: UnitLocation[] = [
-  'Kandang Ruminansia Besar (Sapi Perah & Potong)',
-  'Kandang Ruminansia Kecil (Domba & Kambing)',
-  'Kandang Unggas (Broiler & Layer)',
-  'Laboratorium Nutrisi dan Pakan Ternak',
-  'Pabrik Mini Pengolahan Pakan (Feed Mill)',
-  'Unit Pengolahan Limbah & Biogas',
-  'Klinik & Perawatan Kesehatan Ternak',
+  'Kandang Itik',
+  'Kandang Puyuh',
 ];
 
 export const StudentForm: React.FC<StudentFormProps> = ({
@@ -557,7 +552,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                   required
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  placeholder="Contoh: Ahmad Fauzi Rahman"
+                  placeholder="Riswidaressi Widyatanti Namirah Ramadhan"
                   className="w-full pl-9 pr-3 py-2.5 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 min-h-[44px]"
                 />
               </div>
@@ -591,7 +586,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({
                   type="text"
                   value={studentNim}
                   onChange={(e) => setStudentNim(e.target.value)}
-                  placeholder="Contoh: J0301221015"
+                  placeholder="J0409241045"
                   className="w-full pl-9 pr-3 py-2.5 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 font-mono min-h-[44px]"
                 />
               </div>

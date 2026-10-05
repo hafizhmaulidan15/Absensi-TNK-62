@@ -106,7 +106,7 @@ export const GuidanceModal: React.FC<GuidanceModalProps> = ({ isOpen, onClose })
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
             <span className="font-bold text-slate-800 block">Butuh Bantuan Teknis atau Izin Piket?</span>
             <p className="text-slate-600">
-              Hubungi Kak Riwsi TNK 61.
+              Hubungi Kak Riswi TNK 61.
             </p>
           </div>
 

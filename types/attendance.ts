@@ -1,15 +1,10 @@
-export type PiketShift = '06.30' | '12.00' | '16.00';
+﻿export type PiketShift = '06.30' | '12.00' | '16.00';
 
 export type ShiftStatus = 'active' | 'locked' | 'passed';
 
-export type UnitLocation = 
-  | 'Kandang Ruminansia Besar (Sapi Perah & Potong)'
-  | 'Kandang Ruminansia Kecil (Domba & Kambing)'
-  | 'Kandang Unggas (Broiler & Layer)'
-  | 'Laboratorium Nutrisi dan Pakan Ternak'
-  | 'Pabrik Mini Pengolahan Pakan (Feed Mill)'
-  | 'Unit Pengolahan Limbah & Biogas'
-  | 'Klinik & Perawatan Kesehatan Ternak';
+export type UnitLocation =
+  | 'Kandang Itik'
+  | 'Kandang Puyuh';
 
 export interface AttendanceRecord {
   id: string;
