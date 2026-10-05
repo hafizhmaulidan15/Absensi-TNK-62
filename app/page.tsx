@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
@@ -6,13 +6,12 @@ import { HeroBanner } from '@/components/HeroBanner';
 import { StudentForm } from '@/components/StudentForm';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { GuidanceModal } from '@/components/GuidanceModal';
-import { GasConfigModal } from '@/components/GasConfigModal';
 import { AttendanceRecord, PiketShift } from '@/types/attendance';
 import { INITIAL_RECORDS } from '@/lib/sampleData';
 import { getWIBTimeParts } from '@/lib/timeUtils';
 
-const STORAGE_KEY = 'tnk62_attendance_records_v1';
-const GAS_URL_KEY = 'tnk62_gas_webhook_url';
+const STORAGE_KEY = 'tnk62_attendance_records_v2';
+const GAS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwTYv9taERSjt8K9wx_O54Xk_t7wMuXugNmXjWk97xKAxXfUF3A7023IAeB9nAjDSU/exec';
 
 const emptySubscribe = () => () => {};
 
@@ -29,11 +28,10 @@ export default function Home() {
   // Persistence
   const [records, setRecords] = useState<AttendanceRecord[]>(INITIAL_RECORDS);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [gasWebhookUrl, setGasWebhookUrl] = useState('');
+  const gasWebhookUrl = GAS_WEBHOOK_URL;
 
   // Modals
   const [isGuidanceOpen, setIsGuidanceOpen] = useState(false);
-  const [isGasModalOpen, setIsGasModalOpen] = useState(false);
 
   // Initialize clock and storage
   useEffect(() => {
@@ -51,11 +49,6 @@ export default function Home() {
           if (Array.isArray(parsed)) {
             setRecords(parsed);
           }
-        }
-
-        const savedGasUrl = localStorage.getItem(GAS_URL_KEY);
-        if (savedGasUrl) {
-          setGasWebhookUrl(savedGasUrl);
         }
 
         // Auto pick closest shift based on current hour in WIB
@@ -193,7 +186,6 @@ export default function Home() {
               onDeleteRecord={handleDeleteRecord}
               onVerifyRecord={handleVerifyRecord}
               onAddManualRecord={handleAddManualRecord}
-              onOpenGasModal={() => setIsGasModalOpen(true)}
               isAuthenticated={isAdminAuthenticated}
               setIsAuthenticated={setIsAdminAuthenticated}
             />
@@ -205,13 +197,6 @@ export default function Home() {
       <GuidanceModal
         isOpen={isGuidanceOpen}
         onClose={() => setIsGuidanceOpen(false)}
-      />
-
-      <GasConfigModal
-        isOpen={isGasModalOpen}
-        onClose={() => setIsGasModalOpen(false)}
-        gasWebhookUrl={gasWebhookUrl}
-        setGasWebhookUrl={setGasWebhookUrl}
       />
     </div>
   );

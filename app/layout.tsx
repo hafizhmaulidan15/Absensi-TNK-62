@@ -1,5 +1,12 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import './globals.css'; // Global styles
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#1d4ed8',
+};
 
 export const metadata: Metadata = {
   title: 'Presensi Piket TNK 62 - Teknologi dan Manajemen Ternak IPB University',
