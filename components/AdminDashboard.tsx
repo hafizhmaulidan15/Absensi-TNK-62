@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { AttendanceRecord, PiketShift, UnitLocation } from '@/types/attendance';
 import { formatWIBDate, formatWIBTime } from '@/lib/timeUtils';
 import {
@@ -13,8 +13,9 @@ import {
   Trash2,
   Eye,
   CheckCircle,
-  Clock,
+Clock,
   Filter,
+  Camera,
   RefreshCw,
   PlusCircle,
   AlertCircle,
@@ -29,9 +30,15 @@ interface AdminDashboardProps {
   onAddManualRecord: (record: AttendanceRecord) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (val: boolean) => void;
+  gasWebhookUrl: string;
 }
 
 const CORRECT_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN ?? 'TNK61SVIPB';
+
+// Hanya data URL foto (kamera) dan link http(s) yang bisa ditampilkan.
+// Nilai referensi "[FILE] nama_timestamp" bukan URL, jadi tidak di-render sebagai gambar.
+const isViewablePhoto = (url: string) =>
+  !!url && (url.startsWith('data:image/') || url.startsWith('http://') || url.startsWith('https://'));
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   records,
@@ -40,11 +47,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onAddManualRecord,
   isAuthenticated,
   setIsAuthenticated,
+  gasWebhookUrl,
 }) => {
   // Login / Password state
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Data dari spreadsheet
+  const [sheetRecords, setSheetRecords] = useState<AttendanceRecord[]>([]);
+  const [isLoadingSheet, setIsLoadingSheet] = useState(false);
+  const [sheetError, setSheetError] = useState<string | null>(null);
+
+  // Sumber data: spreadsheet (utama), localStorage sebagai cadangan
+  const rows = sheetRecords.length > 0 ? sheetRecords : records;
+
+  const loadFromSheet = useCallback(async () => {
+    setIsLoadingSheet(true);
+    setSheetError(null);
+    try {
+      const res = await fetch(gasWebhookUrl, { cache: 'no-store' });
+      const json = await res.json();
+      if (json.status === 'success' && Array.isArray(json.data)) {
+        const mapped: AttendanceRecord[] = json.data.map(
+          (row: Record<string, string>, i: number) => ({
+            id: `SHEET-${i}-${row.timestamp || i}`,
+            timestamp: row.timestamp || new Date().toISOString(),
+            formattedDate: row.tanggal || '',
+            formattedTime: `${row.waktu || ''} WIB`,
+            studentName: row.nama || '',
+            studentNim: row.nim || '',
+            shift: (row.shift || '06.30') as PiketShift,
+            location: (row.lokasi || 'Kandang Itik') as UnitLocation,
+            photoUrl: row.urlFoto || '',
+            notes: row.catatan || '',
+            status: (row.status || 'Tepat Waktu') as AttendanceRecord['status'],
+            verified: false,
+            syncedToDrive: true,
+          })
+        );
+        setSheetRecords(mapped);
+      } else {
+        setSheetError(json.message || 'Gagal memuat data dari spreadsheet.');
+      }
+    } catch {
+      setSheetError('Tidak dapat menghubungi spreadsheet. Data lokal ditampilkan.');
+    } finally {
+      setIsLoadingSheet(false);
+    }
+  }, [gasWebhookUrl]);
+
+  // Muat data spreadsheet begitu admin berhasil login
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    // Ditunda satu tick agar setState di dalam effect tidak memicu render berantai
+    const t = window.setTimeout(() => {
+      loadFromSheet();
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [isAuthenticated, loadFromSheet]);
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +136,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Filtered records
+// Filtered records
   const filteredRecords = useMemo(() => {
     const today = new Date();
     const todayStr = formatWIBDate(today);
@@ -84,7 +145,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = formatWIBDate(yesterday);
 
-    return records.filter((rec) => {
+    return rows.filter((rec) => {
       // Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -125,25 +186,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       return true;
     });
-  }, [records, searchQuery, dateFilterType, customDate, shiftFilter, statusFilter]);
+}, [rows, searchQuery, dateFilterType, customDate, shiftFilter, statusFilter]);
 
   // Statistics calculation
   const stats = useMemo(() => {
-    const total = records.length;
-    const todayCount = records.filter((r) => r.formattedDate === formatWIBDate(new Date())).length;
-    const tepatWaktuCount = records.filter((r) => r.status === 'Tepat Waktu').length;
+    const total = rows.length;
+    const todayCount = rows.filter((r) => r.formattedDate === formatWIBDate(new Date())).length;
+    const tepatWaktuCount = rows.filter((r) => r.status === 'Tepat Waktu').length;
     const tepatWaktuPct = total > 0 ? Math.round((tepatWaktuCount / total) * 100) : 100;
 
-    const pagi = records.filter((r) => r.shift === '06.30').length;
-    const siang = records.filter((r) => r.shift === '12.00').length;
-    const sore = records.filter((r) => r.shift === '16.00').length;
+const pagi = rows.filter((r) => r.shift === '06.30').length;
+    const siang = rows.filter((r) => r.shift === '12.00').length;
+    const sore = rows.filter((r) => r.shift === '16.00').length;
 
     return { total, todayCount, tepatWaktuPct, pagi, siang, sore };
-  }, [records]);
+  }, [rows]);
 
   // Export to CSV
   const handleExportCSV = () => {
-    if (records.length === 0) {
+    if (rows.length === 0) {
       alert('Tidak ada data untuk diekspor.');
       return;
     }
@@ -161,8 +222,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       'Terverifikasi',
     ];
 
-    const cell = (v: string | undefined) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const rows = records.map((r) => [
+const cell = (v: string | undefined) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const csvRows = rows.map((r) => [
       cell(r.id),
       cell(r.formattedDate),
       cell(r.formattedTime),
@@ -175,9 +236,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       cell(r.verified ? 'Ya' : 'Belum'),
     ]);
 
-    const csvContent =
+const csvContent =
       'data:text/csv;charset=utf-8,\uFEFF' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      [headers.join(','), ...csvRows.map((e) => e.join(','))].join('\n');
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
@@ -410,7 +471,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+<div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-[11px] text-slate-500">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isLoadingSheet
+                  ? 'bg-amber-500 animate-pulse'
+                  : sheetError
+                    ? 'bg-rose-500'
+                    : 'bg-emerald-500'
+              }`}
+            />
+            <span>
+              {isLoadingSheet
+                ? 'Memuat data dari spreadsheet...'
+                : sheetError
+                  ? sheetError
+                  : `Sumber data: Google Spreadsheet (${sheetRecords.length} baris)`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={loadFromSheet}
+            disabled={isLoadingSheet}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-60 cursor-pointer min-h-[36px]"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSheet ? 'animate-spin' : ''}`} />
+            <span>Segarkan</span>
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           
           {/* Search Input */}
@@ -523,7 +614,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               Daftar Rekapitulasi Presensi Piket
             </h3>
             <p className="text-xs text-slate-500">
-              Menampilkan {filteredRecords.length} dari total {records.length} data absensi
+              Menampilkan {filteredRecords.length} dari total {rows.length} data absensi
             </p>
           </div>
 
@@ -540,8 +631,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="text-sm font-semibold text-slate-700">
               Tidak Ada Data Presensi Yang Sesuai
             </div>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Cobalah ubah filter tanggal atau kata kunci pencarian nama mahasiswa.
+<p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Coba ubah filter tanggal atau kata kunci pencarian nama mahasiswa.
             </p>
           </div>
         ) : (
@@ -616,23 +707,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </span>
                     </td>
 
-                    {/* Photo Thumbnail */}
+{/* Photo Thumbnail */}
                     <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => setPreviewRecord(rec)}
-                        className="group relative inline-block rounded-lg overflow-hidden border border-slate-200 hover:border-blue-500 transition-all shadow-2xs"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={rec.photoUrl}
-                          alt="Thumbnail Foto"
-                          className="w-12 h-10 object-cover group-hover:scale-105 transition-transform"
-                        />
-                        <div className="absolute inset-0 bg-blue-900/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
-                          <Eye className="w-3.5 h-3.5" />
-                        </div>
-                      </button>
+                      {isViewablePhoto(rec.photoUrl) ? (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewRecord(rec)}
+                          className="group relative inline-block rounded-lg overflow-hidden border border-slate-200 hover:border-blue-500 transition-all shadow-2xs"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={rec.photoUrl}
+                            alt="Thumbnail Foto"
+                            className="w-12 h-10 object-cover group-hover:scale-105 transition-transform"
+                          />
+                          <div className="absolute inset-0 bg-blue-900/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                            <Eye className="w-3.5 h-3.5" />
+                          </div>
+                        </button>
+                      ) : (
+                        <span
+                          className="inline-flex items-center justify-center w-12 h-10 rounded-lg border border-dashed border-slate-300 text-slate-400"
+                          title={rec.photoUrl || 'Foto tidak tersimpan'}
+                        >
+                          <Camera className="w-4 h-4" />
+                        </span>
+                      )}
                     </td>
 
                     {/* Actions */}
@@ -688,13 +788,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
             </div>
 
-            <div className="p-4 bg-black flex items-center justify-center max-h-96 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previewRecord.photoUrl}
-                alt="Foto Dokumentasi Piket"
-                className="max-h-96 w-auto object-contain rounded-lg"
-              />
+<div className="p-4 bg-black flex items-center justify-center max-h-96 overflow-hidden">
+              {isViewablePhoto(previewRecord.photoUrl) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewRecord.photoUrl}
+                  alt="Foto Dokumentasi Piket"
+                  className="max-h-96 w-auto object-contain rounded-lg"
+                />
+              ) : (
+                <div className="text-center text-slate-300 px-4 py-8 space-y-2">
+                  <Camera className="w-8 h-8 mx-auto" />
+                  <p className="text-xs">Foto tidak tersimpan di penyimpanan online.</p>
+                  <p className="text-[11px] text-slate-400 break-all">
+                    Referensi: {previewRecord.photoUrl || 'tidak ada'}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="p-5 space-y-3 bg-white text-xs sm:text-sm">

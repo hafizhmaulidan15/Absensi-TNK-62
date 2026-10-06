@@ -188,6 +188,7 @@ export default function Home() {
               onVerifyRecord={handleVerifyRecord}
               onAddManualRecord={handleAddManualRecord}
               isAuthenticated={isAdminAuthenticated}
+              gasWebhookUrl={gasWebhookUrl}
               setIsAuthenticated={setIsAdminAuthenticated}
             />
           </div>
