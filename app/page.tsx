@@ -12,7 +12,7 @@ import { getWIBTimeParts } from '@/lib/timeUtils';
 
 const STORAGE_KEY = 'tnk62_attendance_records_v2';
 const GAS_WEBHOOK_URL =
-'https://script.google.com/macros/s/AKfycbzLotG-uXjlDLouAOAev4bNa56ODCgSlTeEAW4aPzrKAfyNWleq264YgzrlNiIOxjdH/exec';
+'https://script.google.com/macros/s/AKfycbyCTjNuzw9YlfA5ZaEQj69z5phtpA-DjHikuelmmGJ9OSUX_2PiFt709ohbSAm2iCTB/exec';
 
 const emptySubscribe = () => () => {};
 
