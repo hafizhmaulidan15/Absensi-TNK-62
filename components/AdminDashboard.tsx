@@ -82,7 +82,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             photoUrl: row.urlFoto || '',
             notes: row.catatan || '',
             status: (row.status || 'Tepat Waktu') as AttendanceRecord['status'],
-            verified: false,
+            verified: /manual/i.test(row.catatan || ''),
             syncedToDrive: true,
           })
         );
@@ -122,8 +122,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [manualName, setManualName] = useState('');
   const [manualNim, setManualNim] = useState('');
   const [manualShift, setManualShift] = useState<PiketShift>('06.30');
-  const [manualLocation, setManualLocation] = useState<UnitLocation>('Kandang Itik');
+const [manualLocation, setManualLocation] = useState<UnitLocation>('Kandang Itik');
   const [manualNotes, setManualNotes] = useState('');
+  const [manualStatus, setManualStatus] = useState<AttendanceRecord['status']>('Tepat Waktu');
+  const [manualPhoto, setManualPhoto] = useState('');
+  const [manualPhotoPreview, setManualPhotoPreview] = useState('');
+  const [isSavingManual, setIsSavingManual] = useState(false);
+  const [manualError, setManualError] = useState<string | null>(null);
 
   // Handle Password Login
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -252,34 +257,84 @@ const csvContent =
     document.body.removeChild(link);
   };
 
-  // Submit Manual Record
-  const handleCreateManual = (e: React.FormEvent) => {
+// Submit Manual Record
+  const handleCreateManual = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualName.trim()) return;
+    if (!manualName.trim() || isSavingManual) return;
+    setIsSavingManual(true);
+    setManualError(null);
 
     const now = new Date();
-    const newRec: AttendanceRecord = {
-      id: `TNK62-ADM-${Date.now().toString(36).toUpperCase()}`,
-      timestamp: now.toISOString(),
-      formattedDate: formatWIBDate(now),
-      formattedTime: formatWIBTime(now),
-      studentName: manualName.trim(),
-      studentNim: manualNim.trim(),
-      shift: manualShift,
-      location: manualLocation,
-      photoUrl:
-        'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%230254D8"/><text x="200" y="150" fill="%23FFFFFF" font-family="sans-serif" font-size="20" text-anchor="middle">Input Manual Admin</text></svg>',
-      notes: manualNotes.trim() || 'Presensi susulan diinput manual oleh Admin / Dosen.',
-      status: 'Tepat Waktu',
-      verified: true,
-      syncedToDrive: false,
-    };
+    const status = manualStatus;
+    const catatan = manualNotes.trim() || 'Presensi susulan diinput manual oleh Admin / Dosen.';
 
-    onAddManualRecord(newRec);
-    setShowAddModal(false);
-    setManualName('');
-    setManualNim('');
-    setManualNotes('');
+    try {
+      // Kirim ke spreadsheet via Apps Script (termasuk foto bila ada)
+      if (gasWebhookUrl) {
+        const res = await fetch(gasWebhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'submitManualAttendance',
+            timestamp: now.toISOString(),
+            namaMahasiswa: manualName.trim(),
+            nim: manualNim.trim(),
+            waktuPiket: manualShift,
+            lokasi: manualLocation,
+            status,
+            catatan,
+            fotoBase64: manualPhoto || '',
+          }),
+        });
+        void res;
+      }
+
+      const newRec: AttendanceRecord = {
+        id: `TNK62-ADM-${Date.now().toString(36).toUpperCase()}`,
+        timestamp: now.toISOString(),
+        formattedDate: formatWIBDate(now),
+        formattedTime: formatWIBTime(now),
+        studentName: manualName.trim(),
+        studentNim: manualNim.trim(),
+        shift: manualShift,
+        location: manualLocation,
+        photoUrl: manualPhoto || '',
+        notes: catatan,
+        status,
+        verified: true,
+        syncedToDrive: Boolean(gasWebhookUrl),
+      };
+
+      onAddManualRecord(newRec);
+      setShowAddModal(false);
+      setManualName('');
+      setManualNim('');
+      setManualNotes('');
+      setManualPhoto('');
+      setManualPhotoPreview('');
+    } catch {
+      setManualError('Gagal menyimpan data manual. Coba lagi.');
+    } finally {
+      setIsSavingManual(false);
+    }
+  };
+
+  const handleManualPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setManualError('Berkas harus berupa gambar.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result);
+      setManualPhoto(dataUrl);
+      setManualPhotoPreview(dataUrl);
+      setManualError(null);
+    };
+    reader.readAsDataURL(file);
   };
 
   // IF NOT AUTHENTICATED: Show Password Login Screen
@@ -692,19 +747,29 @@ const csvContent =
                       )}
                     </td>
 
-                    {/* Status */}
+{/* Status */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                          rec.status === 'Tepat Waktu'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : rec.status === 'Toleransi'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-rose-100 text-rose-800'
-                        }`}
-                      >
-                        {rec.status}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                            rec.status === 'Tepat Waktu'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : rec.status === 'Toleransi'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {rec.status}
+                        </span>
+                        {/manual/i.test(rec.notes || '') && (
+                          <span
+                            className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700"
+                            title={rec.notes}
+                          >
+                            Manual
+                          </span>
+                        )}
+                      </div>
                     </td>
 
 {/* Photo Thumbnail */}
@@ -921,16 +986,21 @@ const csvContent =
                   </select>
                 </div>
 
-                <div>
+<div>
                   <label className="block text-xs font-bold uppercase text-slate-700 mb-1">
-                    Status
+                    Status Kehadiran
                   </label>
-                  <input
-                    type="text"
-                    disabled
-                    value="Tepat Waktu"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-slate-600"
-                  />
+                  <select
+                    value={manualStatus}
+                    onChange={(e) =>
+                      setManualStatus(e.target.value as AttendanceRecord['status'])
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 bg-white"
+                  >
+                    <option value="Tepat Waktu">Tepat Waktu</option>
+                    <option value="Terlambat">Terlambat</option>
+                    <option value="Toleransi">Toleransi</option>
+                  </select>
                 </div>
               </div>
 
@@ -948,6 +1018,46 @@ const csvContent =
                 </select>
               </div>
 
+<div>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">
+                  Foto Bukti (Opsional)
+                </label>
+                {manualPhotoPreview ? (
+                  <div className="relative inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={manualPhotoPreview}
+                      alt="Pratinjau foto bukti"
+                      className="max-h-40 rounded-xl border border-slate-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setManualPhoto('');
+                        setManualPhotoPreview('');
+                      }}
+                      className="absolute top-1.5 right-1.5 p-1.5 rounded-lg bg-white/90 text-rose-600 hover:bg-white transition-colors"
+                      title="Hapus foto"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center gap-1.5 py-5 px-3 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors text-center">
+                    <Camera className="w-6 h-6 text-slate-400" />
+                    <span className="text-[11px] text-slate-500">
+                      Ketuk untuk pilih foto
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleManualPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-700 mb-1">
                   Catatan Keterangan
@@ -961,6 +1071,10 @@ const csvContent =
                 />
               </div>
 
+              {manualError && (
+                <p className="text-xs text-rose-600 font-medium">{manualError}</p>
+              )}
+
               <div className="pt-3 flex items-center justify-end gap-2">
                 <button
                   type="button"
@@ -969,11 +1083,12 @@ const csvContent =
                 >
                   Batal
                 </button>
-                <button
+<button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                  disabled={isSavingManual}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Simpan Data
+                  {isSavingManual ? 'Menyimpan...' : 'Simpan Data'}
                 </button>
               </div>
             </form>

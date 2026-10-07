@@ -9,10 +9,15 @@ var SHEET_NAME = 'DataAbsen';
 
 // Sheet harus punya header baris 1:
 // Timestamp | Nama Mahasiswa | NIM | Waktu Piket | Lokasi | Status | Catatan | URL Foto
+//
+// Payload dari form mahasiswa dan dari panel admin memakai kunci yang sama,
+// sehingga keduanya otomatis masuk ke sheet ini lewat fungsi yang sama.
 
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
+
+    var isManual = String(data.action || '') === 'submitManualAttendance';
 
     var nama = String(data.namaMahasiswa || '').trim();
     var nim = String(data.nim || '').trim();
@@ -24,6 +29,12 @@ function doPost(e) {
 
     if (!nama || !waktu) {
       return jsonResponse_({ status: 'error', message: 'Nama dan waktu piket wajib diisi.' });
+    }
+
+    // Data manual selalu diberi penanda agar mudah dibedakan dari absensi mahasiswa
+    if (isManual) {
+      catatan = (catatan ? catatan + ' ' : '') + '[INPUT MANUAL]';
+      if (!status) status = 'Tepat Waktu';
     }
 
     var urlFoto = '';
