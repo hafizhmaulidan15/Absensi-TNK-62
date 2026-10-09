@@ -45,6 +45,11 @@ const UNIT_LOCATIONS: UnitLocation[] = [
   'Kandang Puyuh',
 ];
 
+const LOCATION_DETAIL: Record<UnitLocation, string> = {
+  'Kandang Itik': 'Unggas air & kolam',
+  'Kandang Puyuh': 'Unggas petelur & pedaging',
+};
+
 export const StudentForm: React.FC<StudentFormProps> = ({
   currentTime,
   selectedShift,
@@ -527,23 +532,43 @@ if (!photoDataUrl) {
           </div>
 
           {/* SECTION 3: LOKASI UNIT KANDANG */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
               3. Lokasi Unit / Kandang Piket <span className="text-rose-500">*</span>
             </label>
-            <div className="relative">
-              <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
-              <select
-                value={location}
-                onChange={(e) => setLocation(e.target.value as UnitLocation)}
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 min-h-[44px]"
-              >
-                {UNIT_LOCATIONS.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2.5">
+              {UNIT_LOCATIONS.map((loc) => {
+                const isSelected = location === loc;
+                return (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => setLocation(loc)}
+                    aria-pressed={isSelected}
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all min-h-[56px] cursor-pointer ${
+                      isSelected
+                        ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20'
+                        : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50/40'
+                    }`}
+                  >
+                    <span
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                        isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-xs sm:text-sm font-semibold text-slate-900 truncate">
+                        {loc}
+                      </span>
+                      <span className="block text-[10px] text-slate-500 truncate">
+                        {LOCATION_DETAIL[loc]}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
