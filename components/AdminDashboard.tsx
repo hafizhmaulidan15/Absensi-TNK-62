@@ -1015,7 +1015,7 @@ const csvContent =
                 >
                   <option value="Kandang Itik">Kandang Itik</option>
                   <option value="Kandang Puyuh">Kandang Puyuh</option>
-                  <option value="Penelitian">Penelitian</option>
+                  <option value="Penetasan">Penetasan</option>
                 </select>
               </div>
 

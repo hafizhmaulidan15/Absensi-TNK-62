@@ -43,13 +43,13 @@ interface StudentFormProps {
 const UNIT_LOCATIONS: UnitLocation[] = [
   'Kandang Itik',
   'Kandang Puyuh',
-  'Penelitian',
+  'Penetasan',
 ];
 
 const LOCATION_DETAIL: Record<UnitLocation, string> = {
   'Kandang Itik': 'Unggas air & kolam',
   'Kandang Puyuh': 'Unggas petelur & pedaging',
-  Penelitian: 'Eksperimen & riset terapan',
+  Penetasan: 'Area pen pasturan',
 };
 
 export const StudentForm: React.FC<StudentFormProps> = ({

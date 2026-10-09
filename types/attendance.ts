@@ -5,7 +5,7 @@ export type ShiftStatus = 'active' | 'locked' | 'passed';
 export type UnitLocation =
   | 'Kandang Itik'
   | 'Kandang Puyuh'
-  | 'Penelitian';
+  | 'Penetasan';
 
 export interface AttendanceRecord {
   id: string;
